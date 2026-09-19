@@ -51,7 +51,7 @@ Copy its `version` into a private JSON file. Set the new-user allowance and the 
   "policy": {
     "version": 1,
     "welcomeEnabled": true,
-    "welcomeMinutes": 10,
+    "welcomeMinutes": 5,
     "dailyWelcomeBudgetMinutes": 100,
     "lifetimeWelcomeBudgetMinutes": 1000
   }

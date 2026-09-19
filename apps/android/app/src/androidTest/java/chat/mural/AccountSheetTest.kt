@@ -40,7 +40,7 @@ class AccountSheetTest {
         val state = AccountState(googleAvailable = true, accountID = "synthetic-account", email = "preview@example.test",
             minutes = MinuteBalance("milliseconds", "connected-conversation-time", 1_800_000, 0, 1_800_000))
         compose.setContent { MuralTheme { AccountSheet(state, {}, {}, {}, { deletions++ }, {}) } }
-        compose.onNodeWithTag("account-minute-balance").assertTextEquals("30 minutes")
+        compose.onNodeWithTag("account-minute-balance").assertTextEquals("30:00 min available")
         compose.onNodeWithText("Delete account").performScrollTo().performClick()
         assertEquals(0, deletions)
         compose.onNodeWithText("Delete your Mural account", substring = true).assertIsDisplayed()
@@ -53,7 +53,7 @@ class AccountSheetTest {
 
     @Test fun finalSecondsAreVisibleAndAnUnavailableStoreDoesNotOfferPurchases() {
         compose.setContent { MuralTheme { AccountSheet(member, {}, {}, {}, {}, {}) } }
-        compose.onNodeWithTag("account-minute-balance").assertTextEquals(context.getString(R.string.account_seconds_value, "5"))
+        compose.onNodeWithTag("account-minute-balance").assertTextEquals("0:05 min available")
         compose.onNodeWithTag("account-buy-minutes").assertDoesNotExist()
         compose.onNodeWithTag("account-conversation-source").assertDoesNotExist()
     }

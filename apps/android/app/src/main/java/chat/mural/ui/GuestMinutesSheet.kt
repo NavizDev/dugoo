@@ -26,6 +26,7 @@ fun GuestMinutesSheet(
     memberRemaining: Long? = null,
     onContinue: () -> Unit, onSignIn: (() -> Unit)?, onBuy: (() -> Unit)?,
     onRetry: () -> Unit, onSettings: () -> Unit, onDismiss: () -> Unit,
+    onPlans: (() -> Unit)? = null,
 ) {
     val checking = busy || state.status == GuestMinuteStatus.CHECKING
     val title = when {
@@ -34,7 +35,7 @@ fun GuestMinutesSheet(
         checking -> R.string.guest_checking_title
         state.status == GuestMinuteStatus.RETRY -> R.string.guest_retry_title
         state.status == GuestMinuteStatus.SIGN_IN_REQUIRED && !signedIn -> R.string.guest_sign_in_title
-        signedIn && memberRemaining == 0L -> R.string.guest_more_title
+        signedIn && memberRemaining == 0L -> R.string.hosted_exhausted_title
         signedIn -> R.string.guest_retry_title
         state.status == GuestMinuteStatus.READY && state.remainingMilliseconds == 0L -> R.string.guest_more_title
         state.status == GuestMinuteStatus.READY -> R.string.guest_retry_title
@@ -47,6 +48,7 @@ fun GuestMinutesSheet(
         R.string.guest_retry_title -> R.string.guest_retry_detail
         R.string.guest_sign_in_title -> R.string.guest_sign_in_detail
         R.string.guest_more_title -> R.string.guest_more_detail
+        R.string.hosted_exhausted_title -> R.string.hosted_exhausted_detail
         else -> R.string.guest_unavailable_detail
     }
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MuralColors.Cream,
@@ -65,6 +67,10 @@ fun GuestMinutesSheet(
                 if (ready) Button(onClick = onContinue, enabled = !busy, shape = RoundedCornerShape(50),
                     modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp).testTag("guest-continue")) {
                     Text(stringResource(R.string.guest_continue))
+                }
+                if (!ready && signedIn && memberRemaining == 0L && onPlans != null) Button(onClick = onPlans, enabled = !checking,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp).testTag("hosted-view-plans"), shape = RoundedCornerShape(50)) {
+                    Text(stringResource(R.string.hosted_view_plans))
                 }
                 if (!signedIn && onSignIn != null) Button(onClick = onSignIn, enabled = !checking,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp).testTag("guest-sign-in"), shape = RoundedCornerShape(50)) {

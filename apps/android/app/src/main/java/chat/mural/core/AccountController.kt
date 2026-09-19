@@ -97,6 +97,7 @@ class AccountController(
         val profile = api.profile(current)
         if (profile.accountID != current.accountID) throw AccountFailure.InvalidResponse
         mutable.value = mutable.value.copy(email = profile.email, minutes = null)
+        api.claimWelcome(current)
         mutable.value = mutable.value.copy(minutes = api.minutes(current))
     }
     private suspend fun operation(block: suspend () -> Unit) {

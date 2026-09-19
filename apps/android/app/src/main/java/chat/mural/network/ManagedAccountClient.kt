@@ -46,6 +46,7 @@ class ManagedAccountClient internal constructor(private val origin: HttpUrl, tra
         if (it.accountID != session.accountID) throw AccountFailure.InvalidResponse
     }
     override suspend fun minutes(session: AccountSession): MinuteBalance = decode(request("GET", "minutes", session))
+    override suspend fun claimWelcome(session: AccountSession): WelcomeClaim = decode(request("POST", "minutes/welcome", session))
     override suspend fun signOut(session: AccountSession) {
         if (request("POST", "auth/sign-out", session)["signedOut"] != JsonPrimitive(true)) throw AccountFailure.InvalidResponse
     }

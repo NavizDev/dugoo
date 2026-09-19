@@ -7,6 +7,11 @@
     <string name="hosted_unconfirmed">Mural could not confirm that request. It will not be sent again automatically.</string>
     <string name="hosted_unavailable">Mural minutes are not available for this request right now.</string>
     <string name="hosted_no_minutes">You have no conversation minutes available.</string>
+    <string name="hosted_exhausted_title">You’ve used your free minutes.</string>
+    <string name="hosted_exhausted_detail">Your free conversation time is finished. Plans will be available here in a future release.</string>
+    <string name="hosted_view_plans">View plans</string>
+    <string name="hosted_plans_placeholder_title">Plans pending</string>
+    <string name="hosted_plans_placeholder_detail">Commercial plans and payments are not available yet. This placeholder will be replaced in a future release.</string>
     <string name="hosted_extra_help_limit">This conversation has reached its limit for extra explanations.</string>
     <string name="hosted_window_closed">Start a new conversation for more help. Your saved meanings are still available.</string>
     <string name="hosted_request_failed">Mural could not complete that request. Please try again later.</string>

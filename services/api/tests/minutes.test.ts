@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { connectDatabase, transaction } from '../src/db.js';
 import { migrate } from '../src/migrate.js';
-import { appendMinuteEntry, captureWelcomeOffer, claimWelcomeMinutes, finishMinuteReservation, millisecondsForMinutes,
+import { appendMinuteEntry, captureWelcomeOffer, claimAuthenticatedWelcomeMinutes, claimWelcomeMinutes, finishMinuteReservation, millisecondsForMinutes,
   minuteBalance, reserveMinutes, UnconfiguredMinuteAttestor } from '../src/minutes.js';
 import { applyMinuteCampaign, prepareMinuteCampaign, updateWelcomePolicy, welcomePolicy } from '../src/minutes-admin.js';
 import { createChallenge, deleteAccount, digest, exchangeIdentity } from '../src/auth.js';
@@ -183,6 +183,24 @@ integration('signup captures one offer and signing in again cannot refresh it', 
     assert.equal((await claimWelcomeMinutes(f.db, first.accountID, {}, proof())).grantedMilliseconds, 420_000);
   } finally { await f.cleanup(); }
 });
+integration('authenticated welcome claim grants five minutes exactly once, including concurrent retries', async () => {
+  const f = await fixture();
+  try {
+    await f.policy(5); const account = await f.account();
+    const results = await Promise.all([
+      claimAuthenticatedWelcomeMinutes(f.db, account), claimAuthenticatedWelcomeMinutes(f.db, account),
+      claimAuthenticatedWelcomeMinutes(f.db, account),
+    ]);
+    assert.equal(results.filter(result => !result.alreadyClaimed).length, 1);
+    assert.ok(results.every(result => result.grantedMilliseconds === 300_000));
+    assert.equal((await minuteBalance(f.db, account)).availableMilliseconds, 300_000);
+    const reservation = await reserveMinutes(f.db, account, 'exact-consumption', 300_000);
+    await finishMinuteReservation(f.db, reservation, 73_000);
+    await finishMinuteReservation(f.db, reservation, 73_000);
+    assert.equal((await minuteBalance(f.db, account)).availableMilliseconds, 227_000);
+    assert.ok((await minuteBalance(f.db, account)).availableMilliseconds >= 0);
+  } finally { await f.cleanup(); }
+});
 integration('minute API requires identity, exposes no grant route and leaves purchases unavailable', async () => {
   const f = await fixture();
   const config = { hmacKey: 'c'.repeat(64), proxyToken: 'd'.repeat(64), allowLocalLoopback: false };
@@ -200,5 +218,23 @@ integration('minute API requires identity, exposes no grant route and leaves pur
     assert.equal(unavailable.statusCode, 200);
     assert.deepEqual(unavailable.json(), { available: false, reason: 'temporarily_unavailable', grantedMilliseconds: 0 });
     assert.equal((await app.inject({ url: '/v1/pricing', headers })).json().minutePurchasesAvailable, false);
+  } finally { await app.close(); await f.cleanup(); }
+});
+integration('welcome HTTP retries are idempotent and cannot be redirected to another account', async () => {
+  const f = await fixture();
+  const config = { hmacKey: 'e'.repeat(64), proxyToken: 'f'.repeat(64), allowLocalLoopback: false };
+  const app = createApp({ db: f.db, auth: { googleClientID: 'test-google' }, accounts: { admission: new AuthAdmission(f.db, config) } });
+  try {
+    await f.policy(5); const owner = await f.account(); const other = await f.account();
+    const token = randomBytes(32).toString('base64url');
+    await f.db.query("INSERT INTO auth_sessions(id,account_id,token_hash,expires_at) VALUES($1,$2,$3,now()+interval '1 hour')",
+      [randomUUID(), owner, digest(token)]);
+    const headers = { 'x-mural-client-ip': '192.0.2.44', 'x-mural-proxy-token': config.proxyToken, authorization: `Bearer ${token}` };
+    const first = await app.inject({ method: 'POST', url: '/v1/minutes/welcome', payload: {}, headers });
+    const retry = await app.inject({ method: 'POST', url: '/v1/minutes/welcome', payload: {}, headers });
+    assert.deepEqual(first.json(), { available: true, grantedMilliseconds: 300_000, alreadyClaimed: false });
+    assert.deepEqual(retry.json(), { available: true, grantedMilliseconds: 300_000, alreadyClaimed: true });
+    assert.equal((await minuteBalance(f.db, owner)).availableMilliseconds, 300_000);
+    assert.equal((await minuteBalance(f.db, other)).availableMilliseconds, 0);
   } finally { await app.close(); await f.cleanup(); }
 });

@@ -66,12 +66,16 @@ data class MinuteBalance(
         else paid?.takeIf { it.available }?.estimatedMilliseconds ?: 0L
 }
 
+@Serializable
+data class WelcomeClaim(val available: Boolean, val grantedMilliseconds: Long = 0, val alreadyClaimed: Boolean = false)
+
 interface AccountService {
     suspend fun providers(): AccountProviders
     suspend fun challenge(): AccountChallenge
     suspend fun exchange(challenge: AccountChallenge, idToken: String, expectedAccountID: String? = null): AccountExchange
     suspend fun profile(session: AccountSession): AccountProfile
     suspend fun minutes(session: AccountSession): MinuteBalance
+    suspend fun claimWelcome(session: AccountSession): WelcomeClaim = WelcomeClaim(false)
     suspend fun signOut(session: AccountSession)
     suspend fun delete(session: AccountSession)
 }

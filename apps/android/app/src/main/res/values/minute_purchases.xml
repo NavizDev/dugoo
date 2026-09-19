@@ -7,7 +7,7 @@
     </plurals>
     <string name="minute_purchases_pack_action">Add %1$s for %2$s</string>
     <string name="minute_purchases_one_time">One-time purchase · No subscription</string>
-    <string name="minute_purchases_balance">%1$s minutes available</string>
+    <string name="minute_purchases_balance">%1$s min available</string>
     <string name="minute_purchases_balance_small">Less than a minute available</string>
     <string name="minute_purchases_balance_empty">No minutes available</string>
     <string name="minute_purchases_sign_in">Sign in to add minutes</string>

@@ -166,11 +166,8 @@ private fun MinutePackCard(pack: MinutePack, enabled: Boolean, onBuy: () -> Unit
 
 @Composable
 internal fun minuteBalanceText(milliseconds: Long): String = when {
-    milliseconds == 0L -> stringResource(R.string.minute_purchases_balance_empty)
-    milliseconds < 60_000L -> stringResource(R.string.minute_purchases_balance_small)
-    else -> stringResource(R.string.minute_purchases_balance, NumberFormat.getNumberInstance().apply {
-        maximumFractionDigits = 1; roundingMode = RoundingMode.DOWN
-    }.format(BigDecimal.valueOf(milliseconds).divide(BigDecimal.valueOf(60_000), 1, RoundingMode.DOWN)))
+    else -> stringResource(R.string.minute_purchases_balance,
+        "%d:%02d".format(milliseconds / 60_000, (milliseconds / 1_000) % 60))
 }
 
 @StringRes

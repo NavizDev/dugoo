@@ -7,6 +7,11 @@
     <string name="hosted_unconfirmed">Mural no ha podido confirmar esta solicitud. No se volverá a enviar automáticamente.</string>
     <string name="hosted_unavailable">Los minutos de Mural no están disponibles para esta solicitud ahora mismo.</string>
     <string name="hosted_no_minutes">No tienes minutos de conversación disponibles.</string>
+    <string name="hosted_exhausted_title">Has utilizado tus minutos gratuitos.</string>
+    <string name="hosted_exhausted_detail">Has terminado tu tiempo gratuito de conversación. Los planes estarán disponibles aquí en una futura versión.</string>
+    <string name="hosted_view_plans">Ver planes</string>
+    <string name="hosted_plans_placeholder_title">Planes pendientes</string>
+    <string name="hosted_plans_placeholder_detail">Los planes comerciales y los pagos aún no están disponibles. Este marcador se sustituirá en una futura versión.</string>
     <string name="hosted_extra_help_limit">Esta conversación ha alcanzado el límite de explicaciones adicionales.</string>
     <string name="hosted_window_closed">Inicia una nueva conversación para recibir más ayuda. Los significados guardados siguen disponibles.</string>
     <string name="hosted_request_failed">Mural no ha podido completar esta solicitud. Vuelve a intentarlo más tarde.</string>

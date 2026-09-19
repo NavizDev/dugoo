@@ -76,6 +76,7 @@ fun MuralApp(
     var showAccount by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
     var showMinutes by rememberSaveable { mutableStateOf(false) }
+    var showPlansPlaceholder by rememberSaveable { mutableStateOf(false) }
     BackHandler(enabled = tab != 0 && !showSettings && !showAccount && !showMinutes) { tab = 0 }
     fun perform(action: CloudAction) {
         when (action) {
@@ -201,8 +202,16 @@ fun MuralApp(
                         vm.dismissMinuteAccess(); purchases.refresh(); showMinutes = true
                     }) else null,
                     onRetry = vm::refreshHostedReadiness,
-                    onSettings = { vm.dismissMinuteAccess(); showSettings = true }, onDismiss = vm::dismissMinuteAccess)
+                     onSettings = { vm.dismissMinuteAccess(); showSettings = true }, onDismiss = vm::dismissMinuteAccess,
+                     onPlans = if (memberState?.signedIn == true && memberState.minutes?.availableMilliseconds == 0L) ({
+                         vm.dismissMinuteAccess(); showPlansPlaceholder = true
+                     }) else null)
             }
+
+            if (showPlansPlaceholder) AlertDialog(onDismissRequest = { showPlansPlaceholder = false },
+                title = { Text(stringResource(R.string.hosted_plans_placeholder_title)) },
+                text = { Text(stringResource(R.string.hosted_plans_placeholder_detail)) },
+                confirmButton = { MuralTextButton(onClick = { showPlansPlaceholder = false }) { Text(stringResource(R.string.settings_done)) } })
 
             if (showAccount && !showMinutes && account?.configuration != null) {
                 val accountState by account.state.collectAsStateWithLifecycle()

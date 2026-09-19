@@ -23,7 +23,7 @@ The app uses Credential Manager's explicit Google button flow. It requests a sho
 
 ## Database permissions
 
-Apply migrations 006 and 007 before deploying this branch, even when free trials remain disabled. Signup now captures a welcome offer, and deletion checks the minute journal. After the deployment's base runtime grants, apply [minute-runtime-grants.sql](../services/api/operations/minute-runtime-grants.sql) as the migration owner. This keeps policy edits and bulk grants out of the API runtime role's permissions. Keep trial-claim, guest, purchase and live-session routes gated until their respective release checks pass.
+Apply migrations 006 and 007 before deploying this branch, even when free trials remain disabled. Signup now captures a welcome offer, and deletion checks the minute journal. Android member sign-in claims the captured offer through `/v1/minutes/welcome`; the server remains authoritative and repeated claims are no-ops. After the deployment's base runtime grants, apply [minute-runtime-grants.sql](../services/api/operations/minute-runtime-grants.sql) as the migration owner. This keeps policy edits and bulk grants out of the API runtime role's permissions. Keep trial-claim, guest, purchase and live-session routes gated until their respective release checks pass.
 
 The account screen reads `/v1/minutes`; expose that authenticated GET route through the trusted proxy when enabling this client. It must not expose any proxy secret to the app. The existing iOS account flow remains available independently.
 

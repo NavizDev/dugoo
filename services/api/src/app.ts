@@ -11,7 +11,7 @@ import { trialEligibility, UnconfiguredAttestor, type TrialAttestor } from './tr
 import type { HostedVoice } from './hosted-voice.js';
 import { ACCESS_REQUEST_PATH, trustedClientNetwork, type AccessRequests } from './access-requests.js';
 import type { AuthAdmission } from './auth-admission.js';
-import { claimWelcomeMinutes, minuteBalance, UnconfiguredMinuteAttestor, type MinuteAttestor } from './minutes.js';
+import { claimAuthenticatedWelcomeMinutes, claimWelcomeMinutes, minuteBalance, UnconfiguredMinuteAttestor, type MinuteAttestor } from './minutes.js';
 import { startGuestMinutes, linkGuestMinutes, UnconfiguredGuestMinuteAttestor, type GuestMinuteAttestor } from './guest-minutes.js';
 import { AI_REPORT_BODY_LIMIT, AI_REPORT_PATH, reportNetwork, type AIReports } from './feedback.js';
 import { stripeOrderByKey, type MinutePurchases } from './minute-purchases.js';
@@ -245,7 +245,8 @@ export function createApp(services: Services) {
   });
   app.post('/v1/minutes/welcome', { bodyLimit: 20_000 }, async request => {
     const account = await authenticate(db, request.headers.authorization);
-    try { return { available: true, ...await claimWelcomeMinutes(db, account, objectBody(request), services.minuteAttestor ?? new UnconfiguredMinuteAttestor()) }; }
+    if (Object.keys(objectBody(request)).length) throw new ServiceError('invalid_request');
+    try { return { available: true, ...await claimAuthenticatedWelcomeMinutes(db, account) }; }
     catch (error) {
       if (error instanceof ServiceError && ['welcome_minutes_unavailable', 'welcome_funding_budget_reached', 'trial_attestation_unavailable'].includes(error.code))
         return { available: false, reason: 'temporarily_unavailable', grantedMilliseconds: 0 };

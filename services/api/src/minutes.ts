@@ -102,6 +102,24 @@ export async function claimWelcomeMinutes(db: Database, account: string, proof: 
   });
 }
 
+/** Claims the frozen offer for an authenticated member; safe to replay after any lost response. */
+export async function claimAuthenticatedWelcomeMinutes(db: Database, account: string) {
+  return transaction(db, async sql => {
+    await sql.query("SELECT pg_advisory_xact_lock(hashtext('mural-welcome-minutes'))");
+    await lockMinuteWallet(sql, account);
+    const previous = (await sql.query('SELECT allowance_ms FROM minute_welcome_claims WHERE account_id=$1', [account])).rows[0];
+    if (previous) return { grantedMilliseconds: Number(previous.allowance_ms), alreadyClaimed: true };
+    const offer = (await sql.query('SELECT allowance_ms FROM minute_welcome_offers WHERE account_id=$1', [account])).rows[0];
+    const allowance = Number(offer?.allowance_ms ?? 0);
+    if (!allowance) throw new ServiceError('welcome_minutes_unavailable', 503);
+    await reserveWelcomeFunding(sql, account, allowance);
+    await sql.query('INSERT INTO minute_welcome_claims(proof_reference,account_id,allowance_ms) VALUES($1,$2,$3)',
+      [`account:${account}`, account, allowance]);
+    await appendMinuteEntry(sql, account, `welcome:${account}`, 'welcome', allowance, 0);
+    return { grantedMilliseconds: allowance, alreadyClaimed: false };
+  });
+}
+
 export async function reserveMinutes(db: Database, account: string, key: string, amount: number) {
   if (!validAmount(amount) || amount === 0 || amount > millisecondsForMinutes(1440) || key.length < 8 || key.length > 128)
     throw new ServiceError('invalid_minute_reservation');

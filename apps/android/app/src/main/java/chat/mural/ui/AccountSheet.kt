@@ -22,7 +22,6 @@ import chat.mural.R
 import chat.mural.core.AccountNotice
 import chat.mural.core.AccountState
 import chat.mural.core.ConversationProvider
-import java.text.NumberFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,12 +53,7 @@ fun AccountSheet(state: AccountState, onDismiss: () -> Unit, onSignIn: () -> Uni
                     Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(stringResource(R.string.account_time_label), style = MaterialTheme.typography.labelLarge)
                         val milliseconds = state.minutes?.availableMilliseconds
-                        Text(if (milliseconds == null) stringResource(R.string.account_time_unavailable) else
-                            stringResource(if (milliseconds in 1 until 60_000) R.string.account_seconds_value else R.string.account_minutes_value,
-                                NumberFormat.getNumberInstance().apply {
-                                    maximumFractionDigits = if (milliseconds in 1 until 60_000) 0 else 1
-                                    roundingMode = java.math.RoundingMode.DOWN
-                                }.format(if (milliseconds in 1 until 60_000) kotlin.math.ceil(milliseconds / 1000.0) else milliseconds / 60_000.0)),
+                        Text(if (milliseconds == null) stringResource(R.string.account_time_unavailable) else minuteBalanceText(milliseconds),
                             style = MaterialTheme.typography.headlineMedium,
                             modifier = Modifier.testTag("account-minute-balance"))
                         state.minutes?.let { PaidBalanceText(it) }
